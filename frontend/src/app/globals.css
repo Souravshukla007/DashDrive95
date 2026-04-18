@@ -1,0 +1,167 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* Aligned with home.html Original Theme */
+  --color-primary:       #7eea57;
+  --color-primary-dim:   #6ad148;
+  --color-dark-bg:       #212121;
+  --color-dark-surface:  #2a2a2a;
+  --color-dark-border:   #3d3d3d;
+  --color-light-bg:      #f2f2f2;
+  --color-light-surface: #ffffff;
+  --color-light-border:  #d3d3d3;
+
+  --color-text-dark:     #212121;
+  --color-text-muted:    #636363;
+  --color-text-light:    #ffffff;
+  --color-text-dim:      #7b7b7b;
+
+  --font-primary:        var(--font-instrument, "Instrument Sans"), "Instrument Sans", sans-serif;
+  --font-secondary:      var(--font-inter, "Inter"), "Inter", sans-serif;
+
+  /* Custom SaaS Shadows */
+  --shadow-saas-sm:      0 2px 8px -2px rgba(15, 23, 42, 0.05);
+  --shadow-saas-md:      0 12px 32px -4px rgba(15, 23, 42, 0.08);
+  --shadow-saas-lg:      0 24px 48px -12px rgba(15, 23, 42, 0.12);
+  --shadow-saas-xl:      0 32px 64px -16px rgba(15, 23, 42, 0.18);
+  --shadow-saas-glow:    0 0 40px -10px rgba(74, 222, 128, 0.3);
+
+  /* Animations */
+  --animate-ticker:      ticker 30s linear infinite;
+  --animate-float:       float 6s ease-in-out infinite;
+  --animate-fade-up:     fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-counter:     counter-up 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-secondary);
+  background-color: var(--color-light-bg);
+  color: var(--color-text-dark);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* === Scroll Animation Utilities === */
+[data-animation-on-scroll] {
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform, opacity;
+}
+
+[data-animation-on-scroll].is-visible {
+  visibility: visible;
+  animation-name: fade-up;
+  animation-duration: 0.8s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: forwards;
+}
+
+[data-animation-type="left"].is-visible {
+  animation-name: slide-right;
+}
+
+[data-animation-type="right"].is-visible {
+  animation-name: slide-left;
+}
+
+/* === Global Keyframes === */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes counter-up {
+  from { opacity: 0; transform: translateY(15px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-right {
+  from { opacity: 0; transform: translateX(-40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slide-left {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-16px); }
+}
+@keyframes ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Base button styles */
+.btn-saas {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.btn-saas-primary {
+  background-color: var(--color-primary);
+  color: var(--color-dark-bg);
+}
+
+.btn-saas-primary:hover {
+  background-color: var(--color-primary-dim);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -10px var(--color-primary);
+}
+
+.btn-saas-outline {
+  background-color: transparent;
+  color: var(--color-text-light);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.btn-saas-outline:hover {
+  background-color: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.4);
+}
+
+.input-saas {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid var(--color-light-border);
+  color: var(--color-text-dark);
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+/* Outline button variant for use on dark backgrounds (default) */
+/* Use btn-saas-outline-light for light/white section backgrounds */
+.btn-saas-outline-light {
+  background-color: transparent;
+  color: var(--color-dark-bg);
+  border: 1px solid var(--color-light-border);
+}
+.btn-saas-outline-light:hover {
+  background-color: var(--color-light-bg);
+  border-color: var(--color-dark-bg);
+}
+
+.input-saas:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.2);
+}
+
+.glass-panel-dark {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}

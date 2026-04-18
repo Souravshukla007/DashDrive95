@@ -1,0 +1,10 @@
+C:\Users\Hello\OneDrive\Documents\Dash_drive\backend\target\debug\deps\ipconfig-fa7b27a925fd42ce.d: C:\Users\Hello\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ipconfig-0.3.4\src\lib.rs C:\Users\Hello\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ipconfig-0.3.4\src\adapter.rs C:\Users\Hello\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ipconfig-0.3.4\src\bindings\mod.rs C:\Users\Hello\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ipconfig-0.3.4\src\bindings\win64.rs C:\Users\Hello\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ipconfig-0.3.4\src\computer.rs C:\Users\Hello\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ipconfig-0.3.4\src\error.rs
+
+C:\Users\Hello\OneDrive\Documents\Dash_drive\backend\target\debug\deps\libipconfig-fa7b27a925fd42ce.rmeta: C:\Users\Hello\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ipconfig-0.3.4\src\lib.rs C:\Users\Hello\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ipconfig-0.3.4\src\adapter.rs C:\Users\Hello\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ipconfig-0.3.4\src\bindings\mod.rs C:\Users\Hello\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ipconfig-0.3.4\src\bindings\win64.rs C:\Users\Hello\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ipconfig-0.3.4\src\computer.rs C:\Users\Hello\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ipconfig-0.3.4\src\error.rs
+
+C:\Users\Hello\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ipconfig-0.3.4\src\lib.rs:
+C:\Users\Hello\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ipconfig-0.3.4\src\adapter.rs:
+C:\Users\Hello\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ipconfig-0.3.4\src\bindings\mod.rs:
+C:\Users\Hello\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ipconfig-0.3.4\src\bindings\win64.rs:
+C:\Users\Hello\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ipconfig-0.3.4\src\computer.rs:
+C:\Users\Hello\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ipconfig-0.3.4\src\error.rs:
