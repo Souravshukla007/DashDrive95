@@ -2,8 +2,9 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useActionState } from "react";
 import Image from "next/image";
+import { loginAction, registerAction } from "../actions/auth";
 
 const bgSlides = [
   { src: "/images/login.jpg", quote: "Enterprise-grade security.", sub: "Every ride secured with end-to-end encryption and No Pin No Pay." },
@@ -15,6 +16,12 @@ export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
+
+  const [loginState, formLoginAction, isLoginPending] = useActionState(loginAction, null);
+  const [registerState, formRegisterAction, isRegisterPending] = useActionState(registerAction, null);
+
+  const error = isLogin ? loginState?.error : registerState?.error;
+  const isPending = isLogin ? isLoginPending : isRegisterPending;
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -92,14 +99,21 @@ export default function LoginPage() {
             </AnimatePresence>
 
             {/* Form */}
-            <form className="flex flex-col gap-4">
+            <form action={isLogin ? formLoginAction : formRegisterAction} className="flex flex-col gap-4">
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/50 text-red-500 text-sm p-3 rounded-xl">
+                  {error}
+                </div>
+              )}
               <AnimatePresence>
                 {!isLogin && (
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                     <label className="block text-xs font-semibold text-white/70 mb-1.5 uppercase tracking-wider">Full Name</label>
                     <input
+                      name="name"
                       type="text"
                       placeholder="John Doe"
+                      required={!isLogin}
                       className="w-full px-4 py-3 rounded-xl text-sm font-medium text-white placeholder-white/30 outline-none transition-all"
                       style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" }}
                       onFocus={e => (e.target.style.borderColor = "rgba(126,234,87,0.7)")}
@@ -112,8 +126,10 @@ export default function LoginPage() {
               <div>
                 <label className="block text-xs font-semibold text-white/70 mb-1.5 uppercase tracking-wider">Email Address</label>
                 <input
+                  name="email"
                   type="email"
                   placeholder="you@example.com"
+                  required
                   className="w-full px-4 py-3 rounded-xl text-sm font-medium text-white placeholder-white/30 outline-none transition-all"
                   style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" }}
                   onFocus={e => (e.target.style.borderColor = "rgba(126,234,87,0.7)")}
@@ -125,8 +141,10 @@ export default function LoginPage() {
                 <label className="block text-xs font-semibold text-white/70 mb-1.5 uppercase tracking-wider">Password</label>
                 <div className="relative">
                   <input
+                    name="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
+                    required
                     className="w-full px-4 py-3 pr-11 rounded-xl text-sm font-medium text-white placeholder-white/30 outline-none transition-all"
                     style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" }}
                     onFocus={e => (e.target.style.borderColor = "rgba(126,234,87,0.7)")}
@@ -152,10 +170,10 @@ export default function LoginPage() {
                 </div>
               )}
 
-              <button type="button"
-                className="w-full py-3.5 mt-2 rounded-xl font-bold text-dark-bg text-base transition-all duration-200 hover:-translate-y-0.5 hover:shadow-saas-glow"
+              <button type="submit" disabled={isPending}
+                className="w-full py-3.5 mt-2 rounded-xl font-bold text-dark-bg text-base transition-all duration-200 hover:-translate-y-0.5 hover:shadow-saas-glow disabled:opacity-50 disabled:hover:translate-y-0"
                 style={{ background: "linear-gradient(135deg, #7eea57 0%, #6ad148 100%)" }}>
-                {isLogin ? "Sign In →" : "Create Account →"}
+                {isPending ? "Please wait..." : isLogin ? "Sign In →" : "Create Account →"}
               </button>
             </form>
 
