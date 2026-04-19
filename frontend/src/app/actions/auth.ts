@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-const API_URL = "http://localhost:8080/api/auth";
+const API_URL = "http://127.0.0.1:8080/api/auth";
 
 export async function loginAction(prevState: any, formData: FormData) {
   const email = formData.get("email");
