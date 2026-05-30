@@ -1,406 +1,330 @@
 <div align="center">
 
-# 🚀 DashDrive
+# 🚖 DashDrive
 
-### *Where Speed Meets Convenience*
+**A production-grade ride-hailing platform — Rust backend, Next.js frontend, real WebSockets.**
 
-**India's most trusted ride-hailing platform — built with a skeuomorphic car dashboard UI, Next.js, Rust, and MongoDB.**
-
-[![Next.js](https://img.shields.io/badge/Next.js-16.2-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
-[![Rust](https://img.shields.io/badge/Rust-Axum-orange?style=for-the-badge&logo=rust)](https://www.rust-lang.org)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Local-green?style=for-the-badge&logo=mongodb)](https://mongodb.com)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-06B6D4?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com)
-[![Framer Motion](https://img.shields.io/badge/Framer-Motion-purple?style=for-the-badge&logo=framer)](https://www.framer.com/motion)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript)](https://typescriptlang.org)
+![Rust](https://img.shields.io/badge/Backend-Rust%20%2B%20Axum-orange?style=flat-square&logo=rust)
+![Next.js](https://img.shields.io/badge/Frontend-Next.js%2016-black?style=flat-square&logo=next.js)
+![MongoDB](https://img.shields.io/badge/Database-MongoDB-green?style=flat-square&logo=mongodb)
+![TypeScript](https://img.shields.io/badge/Language-TypeScript-blue?style=flat-square&logo=typescript)
+![WebSocket](https://img.shields.io/badge/Realtime-WebSocket-purple?style=flat-square)
+![License](https://img.shields.io/badge/License-MIT-lightgrey?style=flat-square)
 
 </div>
 
 ---
 
-## 📋 Table of Contents
+## What Makes This Different
 
-- [Overview](#-overview)
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [Pages & Routes](#-pages--routes)
-- [API Reference](#-api-reference)
-- [Getting Started](#-getting-started)
-- [Environment Variables](#-environment-variables)
-- [Design System](#-design-system)
-- [Contributing](#-contributing)
+Most ride-hailing demos are React UIs calling a Node.js CRUD API. DashDrive deliberately solves harder engineering problems:
 
----
-
-## 🌟 Overview
-
-**DashDrive** is a full-stack, production-ready ride-hailing web application with a **skeuomorphic car dashboard UI**. Every element is designed to feel physical and tactile — raised surfaces, pressed-in inputs, metallic gradients, and real-world-inspired controls.
-
-The platform features:
-- ⚡ Instant & pre-scheduled ride booking
-- 🚑 Emergency hospital transport (one-tap dispatch)
-- 🔐 No Pin No Pay — OTP-verified payments (you pay only after confirming)
-- 🏆 Gamification — ride streaks, eco badges, rewards
-- 💳 Dash+ subscription tiers (Basic / Pro / Premium)
-- 📡 Real-time ride tracking via WebSocket
-- 🌍 Social impact dashboard with animated counters
-
----
-
-## ✨ Features
-
-### 🎨 UI / Design
-| Feature | Description |
+| Challenge | Solution |
 |---|---|
-| **Skeuomorphic Design** | Physical buttons, inset inputs, metallic card surfaces |
-| **Animated Speedometer** | SVG speedometer with Framer Motion needle sweep on load |
-| **Dark Dashboard Theme** | Deep blue + neon cyan + electric green palette |
-| **Scroll Animations** | Intersection Observer–based fade/slide/scale entry effects |
-| **Animated Counters** | Scroll-triggered count-up for social impact metrics |
-| **Vehicle Hover Effects** | Cards lift and wheels spin on hover |
-| **Physical Button Press** | Buttons depress inward on click with shadow reversal |
-| **Toggle Switches** | Realistic sliding toggles for AC/EV/Prebook preferences |
-| **Mobile-First** | Fully responsive — stacks to cards on all screen sizes |
+| Serve thousands of concurrent ride-tracking clients without blocking | **Rust + Tokio** — every connection is a non-blocking async task |
+| Secure payment confirmation without a third-party gateway | **OTP-verified payment flow** — initiate → verify → atomic state transition |
+| JWT stored safely, immune to XSS | **Next.js Server Actions** set HTTP-only cookies — token never touches client JS |
+| Emergency dispatch as a first-class product feature | **Dedicated `/hospital` route** with priority driver assignment and zero auth required |
+| Type safety across the entire API surface | **Serde-serialised Rust structs** — malformed requests are rejected at deserialization, before business logic |
+
+---
+
+## Quick Start
+
+```bash
+# 1. Backend (Rust)
+cd backend && cargo run --release
+# → API live at http://localhost:8080
+# → WebSocket at ws://localhost:8080/ws/ride/:ride_id
+
+# 2. Frontend (Next.js)
+cd frontend && npm install && npm run dev
+# → UI live at http://localhost:3000
+
+# 3. Verify
+curl http://localhost:8080/health
+# → {"status":"ok","service":"DashDrive API","version":"1.0.0"}
+```
+
+**Prerequisites:** [Rust ≥ 1.75](https://rustup.rs) · Node.js ≥ 20 · MongoDB ≥ 6 running locally
+
+---
+
+## Core Features
 
 ### 🚗 Ride Booking
-| Feature | Description |
-|---|---|
-| **Instant Booking** | 4 vehicle types: Taxi, Bike, EV Car, Auto |
-| **Pre-Book** | Schedule rides in advance with date/time picker |
-| **3-Step Wizard** | Location → Vehicle → Confirm flow |
-| **Fare Estimation** | Live fare displayed per vehicle type |
-| **AC / EV Toggle** | Rider preferences with skeuomorphic switches |
+- **3-step animated wizard** — Route → Ride selection → Confirm (Framer Motion transitions)
+- **Ride Now** and **Schedule Later** modes with date/time picker
+- Four vehicle types: `DashCab` · `DashBike` · `DashEV` · `DashAuto`
+- AC preference and EV-only flags per booking, fare estimated on the Rust backend
+- Pre-book endpoint sets ride status to `pending` until driver assignment
 
-### 🔐 Safety & Payments
-| Feature | Description |
-|---|---|
-| **No Pin No Pay** | ATM-style OTP keypad — ride only completes when you verify |
-| **JWT Auth** | Secure authentication with 7-day token expiry |
-| **Live Tracking** | WebSocket connection for real-time driver location |
+### 🔐 Authentication
+- **bcrypt** password hashing (`DEFAULT_COST`) · **JWT HS256**, 7-day expiry
+- Token stored in an **HTTP-only cookie** via Next.js Server Action — zero XSS exposure
+- Axum `FromRequestParts` extractor (`AuthenticatedUser`) protects every route declaratively
 
-### 🎮 Gamification
-| Feature | Description |
-|---|---|
-| **Ride Streaks** | Daily streak calendar with visual progress bar |
-| **Achievement Badges** | Eco Warrior, Streak Master, Speed Demon, Safe Rider, and more |
-| **Points System** | Earn points per ride, redeem for free trips |
+### 📡 Real-Time Ride Tracking
+- Native **WebSocket** at `ws://host/ws/ride/:ride_id` built into the Axum binary
+- Server pushes `accepted → in_progress → arriving → completed` events over Tokio tasks
+- Each connection is isolated to its `ride_id` — no shared global state, graceful disconnect on error
+
+### 💳 OTP Payment Flow
+- `POST /api/payments/initiate` → generates 4-digit OTP, stores `Payment` document
+- `POST /api/payments/verify-otp` → validates OTP, marks payment `verified` **and** ride `completed` atomically
+- All payment endpoints are ownership-gated by JWT `sub`
+
+### 🏆 Gamification Engine
+- **6 badges**: Eco Warrior 🌿 · Streak Master 🏆 · Speed Demon ⚡ · Safe Rider 🛡️ · Top Rated 🌟 · Early Adopter 🚀
+- **Streak tracking**: `current_streak`, `longest_streak`, `last_ride_date` per user
+- **Points balance** returned alongside badges in one unified response
+- Users can only claim and view their own rewards (ownership enforced)
+
+### 📋 Subscriptions
+Three tiers — **Basic** (free) · **Dash+ Pro** (₹199/mo) · **Dash+ Premium** (₹499/mo) — with a full feature-comparison table on the frontend and live plan upgrade/downgrade via the API.
+
+### 🚨 Emergency Dispatch
+A dedicated `/hospital` page triggers `POST /api/rides/emergency` — no authentication required, zero fare, priority driver assigned instantly, animated dispatch UI with a live progress bar.
 
 ---
 
-## 🛠 Tech Stack
+## System Architecture
 
-### Frontend
-```
-Next.js 16 (App Router)     → Framework & SSG
-Tailwind CSS v4             → Utility-first styling
-Framer Motion               → Micro-animations & transitions
-TypeScript 5                → Type safety
-Inter + Poppins             → Google Fonts
-MongoDB / Mongoose          → DB client for SSR routes
-```
-
-### Backend (Rust Microservices)
-```
-Axum 0.7                    → Web framework
-Tokio                       → Async runtime
-MongoDB Driver 3.1          → Database
-jsonwebtoken                → JWT generation & validation
-bcrypt                      → Password hashing
-tokio-tungstenite           → WebSocket support
-tower-http                  → CORS middleware
-serde / serde_json          → Serialization
-chrono                      → Date/time handling
-tracing                     → Structured logging
-```
-
-### Database (MongoDB)
-```
-users          → Auth, profile, subscription tier
-rides          → Booking records, status, fare, driver
-bookings       → Payment reference and OTP
-payments       → OTP verification, payment status
-rewards        → Badge definitions and unlocks
+```mermaid
+graph LR
+    A["Browser / Client"] -->|HTTPS REST| B["Next.js 16\nFrontend :3000"]
+    A -->|WebSocket| C["Rust Axum Backend :8080"]
+    B -->|"Server Actions\n(HTTP-only cookie)"| B
+    B -->|Bearer JWT| C
+    C -->|"Tokio async\nArc&lt;Database&gt;"| D[("MongoDB\ndashdrive")]
+    D --- E["users · rides\npayments · rewards\nbookings"]
+    C --- F["tower-http CORS\ntracing logs"]
 ```
 
 ---
 
-## 📁 Project Structure
+## Authentication & Security
 
-```
-Dash_drive/
-├── frontend/                   # Next.js App
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── globals.css         ← Full skeuomorphic design system
-│   │   │   ├── layout.tsx          ← Root layout (Poppins + Inter fonts)
-│   │   │   ├── page.tsx            ← Homepage (all sections assembled)
-│   │   │   ├── login/page.tsx      ← Login with biometric card
-│   │   │   ├── book/page.tsx       ← 3-step ride booking wizard
-│   │   │   ├── hospital/page.tsx   ← Emergency transport booking
-│   │   │   └── pricing/page.tsx    ← Dash+ subscription plans
-│   │   ├── components/
-│   │   │   ├── Navbar.tsx              ← Dark glassmorphic nav
-│   │   │   ├── Hero.tsx                ← Speedometer + 4 CTA buttons
-│   │   │   ├── DrivingChange.tsx       ← Ride booking section
-│   │   │   ├── Industries.tsx          ← Unique features section
-│   │   │   ├── DarkService.tsx         ← Fleet showcase
-│   │   │   ├── Testimonials.tsx        ← Social impact dashboard
-│   │   │   ├── FooterCTA.tsx           ← Gamification + Investor
-│   │   │   ├── Footer.tsx              ← Contact (pushpin) + footer
-│   │   │   └── ScrollAnimationInitializer.tsx
-│   │   ├── lib/
-│   │   │   └── mongodb.ts          ← MongoDB singleton connection
-│   │   └── services/
-│   │       └── api.ts              ← All Rust API service calls
-│   ├── public/
-│   │   └── images/                 ← 31 project images
-│   ├── .env.local                  ← Frontend env vars
-│   ├── next.config.ts
-│   └── package.json
-│
-├── backend/                    # Rust Axum Microservices
-│   ├── src/
-│   │   ├── main.rs                 ← Axum app, CORS, WebSocket mount
-│   │   ├── models.rs               ← All MongoDB data models
-│   │   ├── db.rs                   ← AppState + collection accessors
-│   │   ├── auth.rs                 ← JWT create/validate + extractor
-│   │   ├── errors.rs               ← AppError → HTTP response
-│   │   └── routes/
-│   │       ├── mod.rs
-│   │       ├── auth.rs             ← POST /api/auth/register, /login
-│   │       ├── rides.rs            ← POST/GET /api/rides/*
-│   │       ├── payments.rs         ← POST /api/payments/*
-│   │       ├── subscriptions.rs    ← GET/POST /api/subscriptions/*
-│   │       └── rewards.rs          ← GET/POST /api/rewards/*
-│   ├── .env                        ← Backend env vars
-│   └── Cargo.toml
-│
-└── public/
-    └── images/                 ← Source images (31 files)
+| Layer | Detail |
+|---|---|
+| Password hashing | `bcrypt` DEFAULT_COST (12 rounds) |
+| Token | JWT HS256 · claims: `sub`, `email`, `exp`, `iat` · 7-day TTL |
+| Storage | HTTP-only cookie via Next.js Server Action — never in `localStorage` |
+| Route guard | Axum `FromRequestParts` extractor — opt-in per handler, no middleware chain to forget |
+| Authorisation | JWT `sub` compared to resource `user_id` on every ownership-sensitive endpoint |
+| CORS | `tower-http` CorsLayer configured on the Axum router |
+
+```rust
+// Any handler becomes protected by declaring this parameter:
+async fn get_ride(
+    AuthenticatedUser(claims): AuthenticatedUser,  // ← rejects if token invalid
+    Path(ride_id): Path<String>,
+    State(state): State<AppState>,
+) -> AppResult<Json<RideResponse>> { ... }
 ```
 
 ---
 
-## 🗺 Pages & Routes
+## Backend Design
 
-| Route | Page | Description |
+**Language:** Rust 2021 · **Framework:** Axum 0.7 · **Runtime:** Tokio 1.0
+
+| Module | Responsibility |
+|---|---|
+| `main.rs` | Router assembly, WebSocket handler, server bootstrap |
+| `auth.rs` | JWT creation, validation, `AuthenticatedUser` extractor |
+| `db.rs` | `AppState { db: Arc<Database> }` with typed collection accessors |
+| `errors.rs` | `AppError` enum → HTTP status via `IntoResponse` |
+| `models.rs` | `User`, `Ride`, `Booking`, `Payment`, `Reward`, `RideStreak` |
+| `routes/rides.rs` | Book · Prebook · Emergency · Get · Cancel · History |
+| `routes/payments.rs` | Initiate · Verify OTP · Cancel |
+| `routes/subscriptions.rs` | Plans · Subscribe · Cancel |
+| `routes/rewards.rs` | Fetch badges + streak · Claim |
+
+**Error handling** — all errors flow through one typed enum; `#[from]` auto-converts MongoDB errors:
+```rust
+pub enum AppError {
+    Unauthorized(String), // 401
+    NotFound(String),      // 404
+    BadRequest(String),    // 400
+    Internal(String),      // 500
+    Database(#[from] mongodb::error::Error), // 500 — zero .map_err() boilerplate
+}
+```
+
+---
+
+## Database Schema
+
+MongoDB · 5 collections · `dashdrive` database
+
+```
+users       → _id, name, email, password_hash, phone?, subscription, created_at
+rides       → _id, user_id, pickup, dropoff, vehicle_type, status, fare,
+              driver_name?, driver_rating?, is_prebook, is_ac, is_ev, created_at
+payments    → _id, ride_id, user_id, amount, status, otp, created_at
+rewards     → _id, user_id, badge_id, badge_name, icon, unlocked, earned_at?
+bookings    → _id, user_id, ride_id, payment_status, otp, created_at
+```
+
+**Ride status lifecycle:** `pending → accepted → in_progress → completed | cancelled`  
+**Payment status lifecycle:** `pending → verified | cancelled | refunded`
+
+---
+
+## Tech Stack
+
+| | Technology | Version |
 |---|---|---|
-| `/` | Homepage | Hero → Booking → Features → Fleet → Impact → Rewards → Investor → Contact |
-| `/login` | Login | Skeuomorphic login card with biometric, toggles, social sign-in |
-| `/book` | Book a Ride | 3-step wizard: location, vehicle selection, confirm |
-| `/hospital` | Hospital on Road | Emergency type selector, live map, dispatch confirmation |
-| `/pricing` | Dash+ Pricing | 3-tier plans (Basic/Pro/Premium) with yearly/monthly toggle |
+| **Frontend** | Next.js | 16.2.4 |
+| | React | 19.2.4 |
+| | TypeScript | ^5 |
+| | Tailwind CSS | ^4 |
+| | Framer Motion | ^12 |
+| **Backend** | Rust (Axum) | 0.7 |
+| | Tokio | 1.0 |
+| | jsonwebtoken | 9.3 |
+| | bcrypt | 0.15 |
+| | serde / serde_json | 1.0 |
+| | tower-http | 0.5 |
+| | thiserror | 1.0 |
+| | tracing-subscriber | 0.3 |
+| **Database** | MongoDB | 3.1 (Rust crate) |
+| **Realtime** | Axum native WebSocket (`axum::extract::ws`) | — |
 
 ---
 
-## 🔌 API Reference
-
-All API endpoints are served by the Rust/Axum backend at `http://localhost:8080`.
+## API Reference
 
 ### Auth
-```
-POST /api/auth/register    Body: { name, email, password, phone? }
-POST /api/auth/login       Body: { email, password }
-```
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | — | Register, returns JWT |
+| `POST` | `/api/auth/login` | — | Login, returns JWT |
 
 ### Rides
-```
-POST /api/rides/book           🔒 Book an instant ride
-POST /api/rides/prebook        🔒 Schedule a future ride
-POST /api/rides/emergency      Book emergency/ambulance ride
-GET  /api/rides/:id            🔒 Get ride details
-GET  /api/rides/user/:userId   🔒 List all rides for user
-POST /api/rides/:id/cancel     🔒 Cancel a ride
-```
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/rides/book` | JWT | Instant booking |
+| `POST` | `/api/rides/prebook` | JWT | Scheduled booking |
+| `POST` | `/api/rides/emergency` | — | Priority hospital dispatch |
+| `GET` | `/api/rides/:id` | JWT | Fetch ride by ID |
+| `POST` | `/api/rides/:id/cancel` | JWT | Cancel ride |
+| `GET` | `/api/rides/user/:user_id` | JWT | Ride history |
 
-### Payments (No Pin No Pay)
-```
-POST /api/payments/initiate     🔒 Generate OTP for ride payment
-POST /api/payments/verify-otp  🔒 Verify OTP to complete payment
-POST /api/payments/cancel       🔒 Cancel a pending payment
-```
+### Payments
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/payments/initiate` | JWT | Generate OTP |
+| `POST` | `/api/payments/verify-otp` | JWT | Verify OTP → complete ride |
+| `POST` | `/api/payments/cancel` | JWT | Cancel payment |
 
-### Subscriptions
-```
-GET  /api/subscriptions/plans      List all Dash+ plans
-POST /api/subscriptions/subscribe  🔒 Subscribe to a plan
-POST /api/subscriptions/cancel     🔒 Cancel subscription
-```
+### Subscriptions & Rewards
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/subscriptions/plans` | — | List plans |
+| `POST` | `/api/subscriptions/subscribe` | JWT | Upgrade plan |
+| `POST` | `/api/subscriptions/cancel` | JWT | Downgrade to Basic |
+| `GET` | `/api/rewards/:user_id` | JWT | Badges + streak + points |
+| `POST` | `/api/rewards/claim` | JWT | Claim badge |
+| `WS` | `/ws/ride/:ride_id` | — | Live status stream |
+| `GET` | `/health` | — | Service health |
 
-### Rewards
-```
-GET  /api/rewards/:userId   🔒 Get badges, streak, points
-POST /api/rewards/claim     🔒 Claim an earned reward
-```
-
-### WebSocket
-```
-WS /ws/ride/:rideId   Real-time ride status updates
-```
-
-> 🔒 = Requires `Authorization: Bearer <token>` header
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- **Node.js** ≥ 18
-- **Rust** (stable) — [install](https://rustup.rs)
-- **MongoDB** running locally on port `27017`
-
----
-
-### 1️⃣ Clone the Repository
-
+**Example — book a ride:**
 ```bash
-git clone https://github.com/yourusername/dashdrive.git
-cd dashdrive
+curl -X POST http://localhost:8080/api/rides/book \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"pickup":"Koramangala","dropoff":"Whitefield","vehicle_type":"ev","is_ac":true}'
+
+# Response
+{"id":"...","status":"accepted","fare":112.5,"driver_name":"Suresh Kumar","driver_rating":4.9,"eta":"4 min"}
 ```
 
 ---
 
-### 2️⃣ Start the Frontend
+## Project Structure
 
-```bash
-cd frontend
-npm install
-npm run dev
 ```
-
-> Opens at **http://localhost:3000**
+dashdrive/
+├── backend/
+│   ├── Cargo.toml
+│   └── src/
+│       ├── main.rs              # Server bootstrap + WebSocket handler
+│       ├── auth.rs              # JWT + AuthenticatedUser extractor
+│       ├── db.rs                # AppState, Arc<Database>, collection helpers
+│       ├── errors.rs            # AppError enum → HTTP responses
+│       ├── models.rs            # All domain structs + enums
+│       └── routes/
+│           ├── auth.rs          # /api/auth/*
+│           ├── rides.rs         # /api/rides/*
+│           ├── payments.rs      # /api/payments/*
+│           ├── subscriptions.rs # /api/subscriptions/*
+│           └── rewards.rs       # /api/rewards/*
+└── frontend/
+    └── src/
+        ├── app/
+        │   ├── book/            # 3-step booking wizard
+        │   ├── login/           # Glassmorphic auth page
+        │   ├── pricing/         # Subscription plans + comparison table
+        │   ├── hospital/        # Emergency dispatch UI
+        │   └── actions/auth.ts  # Server Actions (HTTP-only cookie login)
+        ├── components/          # Navbar, Footer, Hero, Testimonials…
+        ├── hooks/               # useScrollAnimation
+        ├── lib/mongodb.ts       # Mongoose connection cache
+        └── services/api.ts      # Typed client for every backend endpoint
+```
 
 ---
 
-### 3️⃣ Start the Rust Backend
+## Environment Variables
 
-```bash
-cd backend
-cargo run
+**`backend/.env`**
+```env
+MONGODB_URI=mongodb://127.0.0.1:27017/dashdrive
+JWT_SECRET=replace-with-a-long-random-secret
+PORT=8080
 ```
 
-> API server starts at **http://localhost:8080**
-> Make sure MongoDB is running: `mongod --dbpath ./data`
-
----
-
-### 4️⃣ (Optional) Build for Production
-
-```bash
-# Frontend
-cd frontend && npm run build && npm run start
-
-# Backend
-cd backend && cargo build --release && ./target/release/backend
-```
-
----
-
-## 🔧 Environment Variables
-
-### Frontend — `frontend/.env.local`
-
+**`frontend/.env.local`**
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8080
 NEXT_PUBLIC_WS_URL=ws://localhost:8080
 MONGODB_URI=mongodb://localhost:27017/dashdrive
 ```
 
-### Backend — `backend/.env`
-
-```env
-MONGODB_URI=mongodb://localhost:27017/dashdrive
-JWT_SECRET=your-super-secret-jwt-key-change-in-production
-PORT=8080
-```
-
-> ⚠️ **Never commit `.env` or `.env.local` to version control.**
+> ⚠️ Never commit `.env` files. Rotate `JWT_SECRET` before any deployment.
 
 ---
 
-## 🎨 Design System
+## Scalability Notes
 
-DashDrive uses a custom **skeuomorphic design system** defined in `globals.css`.
-
-### CSS Classes
-
-| Class | Effect |
-|---|---|
-| `.card-raised` | Metallic raised surface with layered box shadows |
-| `.card-inset` | Pressed-in recessed surface |
-| `.glass-panel` | Frosted glass effect with backdrop-filter |
-| `.btn-physical` | Base physical button (use with variant) |
-| `.btn-physical-primary` | Neon cyan push button |
-| `.btn-physical-green` | Electric green push button |
-| `.btn-physical-dark` | Dark metallic button |
-| `.btn-physical-danger` | Red emergency button |
-| `.input-skeuomorphic` | Inset pressed-in form input |
-| `.toggle-track` | Toggle switch track (add `.on` for active) |
-| `.glow-cyan` | Cyan outer glow box shadow |
-| `.glow-green` | Green outer glow box shadow |
-| `.text-glow-cyan` | Cyan text glow via text-shadow |
-| `.metallic-text` | Silver gradient text |
-| `.shimmer-text` | Animated shimmer gradient text |
-| `.scan-line` | Animated horizontal scan line |
-| `.gradient-border` | Pseudo-element gradient border |
-| `.animation-float` | Gentle floating up/down animation |
-| `.animate-on-scroll-hidden` | Fade up on scroll (add `-visible` to trigger) |
-| `.animate-on-scroll-left` | Slide in from left on scroll |
-| `.animate-on-scroll-right` | Slide in from right on scroll |
-
-### Color Palette
-
-| Token | Value | Use |
+| Concern | Now | Path to Production |
 |---|---|---|
-| `--color-dash-deep` | `#0a0e1a` | Page background |
-| `--color-dash-navy` | `#0f172a` | Section backgrounds |
-| `--color-dash-surface` | `#242b42` | Card surfaces |
-| `--color-cyan` | `#00d4ff` | Primary accent |
-| `--color-green` | `#39ff14` | Success / eco accent |
-| `--color-amber` | `#f59e0b` | Warning / rewards |
-| `--color-text-primary` | `#f1f5f9` | Main text |
-| `--color-text-secondary` | `#94a3b8` | Subdued text |
-| `--color-text-muted` | `#64748b` | Placeholder / labels |
+| Concurrency | Tokio async — non-blocking per request | Horizontal Axum instances behind a load balancer |
+| WebSocket scale | Per-connection Tokio tasks | Redis Pub/Sub to broadcast events across instances |
+| Database | Single MongoDB, `Arc<Database>` | Atlas replica set + indexes on `user_id`, `ride_id` |
+| Auth | Stateless JWT | No changes needed — already horizontally scalable |
+| OTP delivery | Logged to stdout | Swap to Twilio / AWS SNS in `initiate_payment` |
+| Driver matching | Static assignment | Geospatial query + driver availability queue |
+| Deployment | Local dev | Vercel (frontend) + Fly.io / Railway (backend binary) |
 
 ---
 
-## 🤝 Contributing
+## Engineering Decisions Worth Noting
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature`
-3. Commit with a descriptive message: `git commit -m "feat: add ride cancellation UI"`
-4. Push and open a Pull Request
+**1. Rust over Node for the backend** — not a gimmick. Ownership and lifetimes mean entire classes of bugs (null dereference, data races, use-after-free) are compile errors, not runtime crashes. The Axum + Tokio stack handles concurrent WebSocket sessions at zero GC cost.
 
-### Code Style
-- **Frontend**: Follow existing component patterns. Use `framer-motion` for animations, `btn-physical` classes for buttons
-- **Backend**: Follow Rust idioms. All handlers return `AppResult<Json<T>>`
-- **No hardcoded secrets**: Use `.env` / `.env.local`
+**2. WebSocket in the same binary** — the ride-tracking socket lives in the same Axum process as the REST API. One binary, one port, one deployment unit. No separate socket server or message broker needed for a single-node deployment.
 
----
+**3. HTTP-only cookie auth** — the JWT is set server-side via a Next.js `"use server"` action and stored in an HTTP-only cookie. It is physically inaccessible to client-side JavaScript, eliminating the XSS token theft vector present in the `localStorage` pattern that most tutorials use.
 
-## 📊 Roadmap
+**4. Atomic OTP verification** — verifying a payment OTP and completing the associated ride happen in the same handler function. There is no window where a payment is verified but the ride remains open, or vice versa.
 
-- [ ] Real-time driver location on map (Google Maps / Mapbox)
-- [ ] Push notifications for ride updates
-- [ ] In-app chat between rider and driver
-- [ ] Driver partner onboarding portal
-- [ ] Analytics dashboard for admins
-- [ ] iOS & Android app (React Native)
-- [ ] Multi-language support (Hindi, Tamil, Bengali)
+**5. `AppError` with `#[from]`** — a single typed error enum handles every failure mode across all handlers. MongoDB errors auto-convert via the `From` derive. No `.map_err(|e| AppError::Database(e))` boilerplate anywhere in the codebase.
 
 ---
 
-## 📄 License
+## License
 
-This project is licensed under the **MIT License** — see [LICENSE](LICENSE) for details.
-
----
-
-<div align="center">
-
-**Built with ❤️ by the DashDrive Team**
-
-*Making every ride safer, smarter, and more sustainable — one trip at a time.*
-
-</div>
+MIT © 2025 DashDrive
